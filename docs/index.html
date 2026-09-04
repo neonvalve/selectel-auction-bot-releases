@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Аукцион Selectel: панель-бот</title>
+<meta name="description" content="Бесплатная панель поверх окон для аукциона выделенных серверов Selectel: живые лоты, цена через час и на нужной скидке, сигнал по достижению цели, заказ в один клик.">
+<link rel="icon" href="img/icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --bg: #0F1519; --surface: #161D23; --surface-2: #1C252C; --ink: #E4E9EC; --muted: #94A0AA; --line: #2A343C;
+    --accent: #46C29A; --accent-ink: #7EDDBE; --accent-soft: #163229; --pick: #8FB0FF; --pick-soft: #1B2740;
+    --sans: "Golos Text", "Segoe UI", Arial, sans-serif; --mono: "JetBrains Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: dark; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent-ink); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header.hero { padding: 64px 0 40px; border-bottom: 1px solid var(--line); background: radial-gradient(900px 400px at 20% 0%, rgba(70,194,154,0.12), transparent 60%); }
+  .eyebrow { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  h1 { margin: 0 0 16px; font-size: clamp(2rem, 4.5vw, 3.2rem); line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; max-width: 18ch; text-wrap: balance; }
+  .lede { margin: 0 0 28px; font-size: 1.15rem; color: var(--muted); max-width: 62ch; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); transition: border-color .15s ease, background .15s ease; }
+  .btn:hover { border-color: var(--accent); background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #06231A; }
+  .btn.primary:hover { background: #5AD1A9; }
+  .btn small { font-weight: 400; color: inherit; opacity: .75; }
+  .fine { font-size: 13px; color: var(--muted); margin: 0; }
+  .shot { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); box-shadow: 0 30px 80px rgba(0,0,0,0.45); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .hero .shot { margin-top: 40px; }
+  section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  h2 { margin: 0 0 8px; font-size: 1.7rem; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { margin: 0 0 28px; color: var(--muted); max-width: 70ch; }
+  .why { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .why div { background: var(--surface); padding: 18px 20px; }
+  .why b { display: block; margin-bottom: 6px; font-size: 1.02rem; }
+  .why p { margin: 0; color: var(--muted); font-size: 15px; }
+  .why .num { font-family: var(--mono); color: var(--accent-ink); font-size: 1.6rem; font-weight: 600; display: block; margin-bottom: 4px; }
+  .feature { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: center; margin: 36px 0; }
+  @media (min-width: 900px) { .feature { grid-template-columns: 5fr 7fr; } .feature.flip .text { order: 2; } }
+  .feature h3 { margin: 0 0 8px; font-size: 1.25rem; }
+  .feature p { margin: 0 0 8px; color: var(--muted); }
+  .feature ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); }
+  .feature li { margin: 3px 0; }
+  .steps { counter-reset: step; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .step::before { counter-increment: step; content: counter(step); display: inline-block; font-family: var(--mono); color: var(--accent-ink); font-weight: 600; margin-bottom: 8px; border: 1px solid var(--accent); border-radius: 6px; padding: 0 8px; }
+  .step b { display: block; margin-bottom: 4px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  .faq details { border-bottom: 1px solid var(--line); padding: 14px 0; }
+  .faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+  .faq summary::after { content: "+"; color: var(--accent-ink); font-family: var(--mono); }
+  .faq details[open] summary::after { content: "−"; }
+  .faq p { margin: 10px 0 0; color: var(--muted); max-width: 75ch; }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+  .author-card { display: flex; gap: 22px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .author-card img { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); flex: none; }
+  .author-name { margin: 0 0 6px; font-weight: 600; font-size: 1.1rem; }
+  .author-links { margin: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  @media (max-width: 600px) { .author-card { flex-direction: column; align-items: center; text-align: center; } .author-links { justify-content: center; } }
+  footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+  footer p { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Бесплатно · Windows и Linux · без регистрации в приложении</p>
+    <h1>Аукцион Selectel у вас перед глазами</h1>
+    <p class="lede">На аукционе выделенных серверов Selectel цена лота падает на <b>1 % каждый час</b> и доходит до <b>−29…30 %</b>, но лот в любой момент может забрать кто-то другой. Панель показывает все лоты живьём, считает, во сколько цена дойдёт до вашей, будит звуком в нужный момент и открывает заказ в один клик.</p>
+    <div class="buttons">
+      <a class="btn primary" href="https://github.com/neonvalve/selectel-auction-bot-releases/releases/latest">Скачать для Windows <small>setup.exe</small></a>
+      <a class="btn" href="https://github.com/neonvalve/selectel-auction-bot-releases/releases/latest">Скачать для Linux <small>AppImage</small></a>
+      <a class="btn" href="https://github.com/neonvalve/selectel-auction-bot-releases/releases">Все версии</a>
+    </div>
+    <p class="fine">Установка в профиль пользователя, права администратора не нужны. Контрольные суммы SHA-256 лежат рядом с каждым релизом.</p>
+    <div class="shot"><img src="img/panel-watched.png" alt="Панель аукциона: таблица лотов с ценой сейчас, через час, через два часа, временем достижения целевой скидки и отмеченным золотой звездой лотом" width="1400" height="560"></div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Зачем это нужно</h2>
+    <p class="sub">Аукцион Selectel устроен как голландский: партия из 20–60 лотов стартует со скидкой 3–6 %, каждый час скидка растёт на 1 %, через 25 часов лот снимают. Скидка сохраняется на весь срок аренды, поэтому выгодно дождаться конца, но кто первым оплатил, тот и забрал.</p>
+    <div class="why">
+      <div><span class="num">1 %</span><b>каждый час</b><p>Панель знает формулу сайта и показывает не только цену сейчас, но и через 1 и 2 часа, и на любой скидке, которую вы зададите.</p></div>
+      <div><span class="num">20:17</span><b>во сколько именно</b><p>Для каждого лота считается точное время, когда он дойдёт до вашей целевой скидки, и до финальной цены партии.</p></div>
+      <div><span class="num">★</span><b>сигнал, а не дежурство</b><p>Отметьте лот, задайте порог, и панель разбудит звуком и уведомлением, когда скидка достигнута или лот пропал.</p></div>
+      <div><span class="num">1 клик</span><b>до заказа</b><p>Двойной клик по лоту открывает страницу заказа на сайте Selectel под вашим аккаунтом. Оплата и договор остаются у Selectel.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Что умеет панель</h2>
+    <p class="sub">Полупрозрачное окно поверх других программ. Держите его рядом с работой, а не переключайтесь на сайт каждые полчаса.</p>
+
+    <div class="feature">
+      <div class="text">
+        <h3>Все лоты живьём</h3>
+        <p>Данные берутся напрямую с публичного API Selectel и обновляются каждую минуту, а цены и обратный отсчёт пересчитываются каждую секунду.</p>
+        <ul>
+          <li>Номер лота, конфигурация: процессор, память, диски, видеокарта.</li>
+          <li>Базовая цена, скидка и цена сейчас, через 1 час, через 2 часа.</li>
+          <li>Максимальная скидка партии, цена в финале и время финала.</li>
+          <li>Сортировка по любой колонке щелчком по заголовку.</li>
+        </ul>
+      </div>
+      <div class="shot"><img src="img/panel.png" alt="Таблица лотов, отсортированная по цене" loading="lazy" width="1400" height="560"></div>
+    </div>
+
+    <div class="feature flip">
+      <div class="text">
+        <h3>Фильтры и группировка по железу</h3>
+        <p>Оставьте только то, что вам подходит: производитель процессора, память от 64 ГБ, NVMe, с видеокартой или без, потолок цены, поиск по названию модели.</p>
+        <ul>
+          <li>Группировка по процессору, производителю, линейке, памяти, видеокарте или партии.</li>
+          <li>В каждой группе видно, сколько лотов и от какой цены.</li>
+          <li>Фильтр «★ Слежу» показывает только отмеченные лоты.</li>
+        </ul>
+      </div>
+      <div class="shot"><img src="img/grouped.png" alt="Лоты, сгруппированные по линейке серверов" loading="lazy" width="1400" height="560"></div>
+    </div>
+
+    <div class="feature">
+      <div class="text">
+        <h3>Слежение с сигналом</h3>
+        <p>Нажмите «★ Следить» и укажите порог скидки. Когда лот до него дойдёт, придёт уведомление в трее и прозвучит сигнал, встроенный или ваш WAV-файл. Если лот выкупили раньше, панель тоже сообщит.</p>
+        <ul>
+          <li>Порог свой для каждого лота, максимум партии подсказывается сразу.</li>
+          <li>Уведомления о новых лотах, когда выходит очередная партия.</li>
+          <li>Работает из трея, даже если панель свёрнута.</li>
+        </ul>
+      </div>
+      <div class="shot"><img src="img/watch.png" alt="Окно «Следить за лотом» с выбором порога скидки" loading="lazy" width="1400" height="560"></div>
+    </div>
+
+    <div class="feature flip">
+      <div class="text">
+        <h3>Настройки под себя</h3>
+        <p>Интервал опроса, прозрачность фона, «поверх всех окон», автозагрузка при входе в систему, звук, уведомления и автоматическое обновление приложения.</p>
+        <ul>
+          <li>Панель перетаскивается за заголовок, размер меняется уголком, Esc сворачивает в трей.</li>
+          <li>Новые версии приложение находит само и предлагает установить.</li>
+        </ul>
+      </div>
+      <div class="shot"><img src="img/settings.png" alt="Окно настроек панели" loading="lazy" width="1400" height="580"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Как пользоваться</h2>
+    <p class="sub">Пять минут от установки до первого сигнала.</p>
+    <div class="steps">
+      <div class="step"><b>Установите</b><p>Windows: запустите setup.exe, ярлык появится в меню «Пуск». Linux: сделайте AppImage исполняемым и запустите.</p></div>
+      <div class="step"><b>Отфильтруйте лоты</b><p>Выберите память, диски, потолок цены. Отсортируйте по колонке «Сейчас» или «Цель».</p></div>
+      <div class="step"><b>Задайте цель</b><p>Поле «Цель» вверху: колонки покажут цену и время, когда каждый лот дойдёт до этой скидки.</p></div>
+      <div class="step"><b>Следите</b><p>«★ Следить» на интересных лотах с порогом. Сверните панель в трей и занимайтесь своими делами.</p></div>
+      <div class="step"><b>Заказывайте</b><p>По сигналу двойной клик по лоту открывает страницу заказа на сайте Selectel. Дальше как обычно: конфигурация, оплата, сервер готов через несколько минут.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="faq">
+  <div class="wrap">
+    <h2>Вопросы</h2>
+    <details><summary>Приложение просит логин и пароль от Selectel?</summary><p>Нет. Панель читает только публичный список лотов, тот же, что виден на сайте без входа. Заказ происходит в браузере на сайте Selectel под вашим аккаунтом, приложение к нему доступа не имеет.</p></details>
+    <details><summary>Откуда берутся цены «через час» и «во сколько»?</summary><p>Из правил самого аукциона: у каждого лота есть стартовая скидка, шаг и время окончания, а сайт прибавляет шаг каждый час. Панель считает по той же формуле, поэтому цифры совпадают с сайтом с точностью до копейки.</p></details>
+    <details><summary>Почему у одних лотов максимум −29 %, а у других −27 % или −30 %?</summary><p>Партия живёт 25 часов, и максимум равен стартовой скидке плюс 24. Партии, стартовавшие с −5 %, доходят до −29 %, с −3 % до −27 %, с −6 % до −30 %. Панель показывает это для каждого лота.</p></details>
+    <details><summary>Что происходит при заказе через панель?</summary><p>Открывается официальная страница заказа лота. В ссылку добавлен партнёрский код автора приложения: для вас цена не меняется, а Selectel начисляет автору вознаграждение за приведённого клиента. Так приложение остаётся бесплатным.</p></details>
+    <details><summary>Как обновляться?</summary><p>Панель сама проверяет новые версии при запуске и раз в шесть часов, скачивает пакет, сверяет контрольную сумму и предлагает установить. Можно включить автоматическую установку в настройках.</p></details>
+    <details><summary>Что с Linux?</summary><p>Один файл AppImage, запуск без установки. Полупрозрачность требует композитного менеджера окон, на GNOME, KDE и большинстве современных окружений это работает из коробки.</p></details>
+  </div>
+</section>
+
+<section class="author">
+  <div class="wrap">
+    <h2>Автор</h2>
+    <div class="author-card">
+      <img src="img/author.png" alt="Антон Тепляков" width="112" height="112">
+      <div>
+        <p class="author-name">Антон Тепляков · Telegram <a href="https://t.me/ElementJS">@ElementJS</a> · YouTube <a href="https://www.youtube.com/@antonteplyakov">@antonteplyakov</a></p>
+        <p class="sub" style="margin-bottom:10px">Разработчик, автор канала «Программист из деревни». Делаю инструменты для себя и делюсь ими. Панель бесплатная: заказ через неё поддерживает проект партнёрским кодом Selectel, для вас цена не меняется.</p>
+        <p class="author-links"><a class="btn" href="https://t.me/ElementJS">Написать в Telegram</a> <a class="btn" href="https://www.youtube.com/@antonteplyakov">YouTube-канал</a> <a class="btn" href="mailto:jsxlabor@gmail.com?subject=Аукцион%20Selectel%3A%20предложение">Предложения и пожелания: jsxlabor@gmail.com</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Аукцион Selectel: панель-бот. Независимый бесплатный инструмент, не является продуктом Selectel.</p>
+    <p>Ошибки и предложения: <a href="https://github.com/neonvalve/selectel-auction-bot-releases/issues">Issues</a>. Все версии: <a href="https://github.com/neonvalve/selectel-auction-bot-releases/releases">Releases</a>.</p>
+  </div>
+</footer>
+
+</body>
+</html>
