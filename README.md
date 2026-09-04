@@ -7,7 +7,7 @@
 В разделе Releases справа, файл под свою систему:
 
 - **Windows**: `SelectelAuctionBot-X.Y.Z-setup.exe` — установщик в профиль пользователя, без прав администратора. Есть и переносимый `…-windows-x64.zip`.
-- **Linux**: `SelectelAuctionBot-X.Y.Z-linux-x86_64.AppImage` — сделать исполняемым (`chmod +x`) и запустить.
+- **Linux**: `SelectelAuctionBot-X.Y.Z-linux-amd64.deb` для Ubuntu, Debian, Mint (двойной клик или `sudo apt install ./файл.deb`), либо `SelectelAuctionBot-X.Y.Z-linux-x86_64.AppImage` для любого дистрибутива (`chmod +x` и запустить).
 
 Контрольные суммы в `SHA256SUMS.txt`. Приложение само проверяет обновления и предлагает установить новую версию.
 
